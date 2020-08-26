@@ -13,10 +13,9 @@ import RxCocoa
 class ViewController: UIViewController {
 
     @IBOutlet weak var tableview: UITableView!
-    
     let musiclist = MusicListViewModel()
     let disposeBag = DisposeBag()
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Rxswift"
@@ -29,7 +28,6 @@ class ViewController: UIViewController {
             print("你选中的歌曲信息\(music)")
             self.navigationController?.pushViewController(ViewController1.init(), animated: true)
             }).disposed(by: disposeBag)
-        
         let observable = Observable<String>.create { observer in
             observer.onNext("hangge.com")
             observer.onCompleted()
@@ -42,6 +40,10 @@ class ViewController: UIViewController {
         
         var isOdd = true
         
+        /** deferred
+         * 直到订阅，才创建Observable,并且为每位订阅者创建全新的Observable
+         * 它会通过一个构建函数为每一位订阅者创建新的Observable,
+         * 在一些情况下，直到订阅时才创建Observable是可以保证拿到的数据都是最新的*/
         let factory: Observable<Int> = Observable.deferred {
             isOdd = !isOdd
             if isOdd {
