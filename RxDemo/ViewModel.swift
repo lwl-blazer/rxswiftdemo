@@ -128,22 +128,26 @@ class GithupSignupViewModel1 {
         let wireframe = dependency.wireframe
     
         validateUsername = input.username.flatMapLatest{ username in
+            //转换
             return validationService.validateUsername(username)
                 .observeOn(MainScheduler.instance)
-                .catchErrorJustReturn(.failed(message: "Error contacting server"))
-        }.share(replay: 1)
+                .catchErrorJustReturn(.failed(message: "Error contacting server"))  //catchErrorJustReturn()操作符会将error事件替换成其他的一个元素，然后结束该序列
+        }.share(replay: 1) //share(replay: Int n) 使观察者共享observable,观察者会立即收到最新的元素，即使这些元素是在订阅前产生的 并且缓存最新的n个元素，将这些元素直接发送新的观察者
         
         validatePassword = input.password.map { passwd in
             return validationService.validatePassword(passwd)
         }.share(replay: 1)
-        
-        validatePasswordRepeated = Observable.combineLatest(input.password, input.repeatedPassword, resultSelector: validationService.validateRepeatedPassword)
+    
+        validatePasswordRepeated = Observable.combineLatest(input.password, input.repeatedPassword,
+                                                            resultSelector: validationService.validateRepeatedPassword) //resultSelector: Function,在生成元素时调用
             .share(replay: 1)
+        
         
         let signingIn = ActivityIndicator()
         self.signingIn = signingIn.asObservable()
         
-        let usernameAndPassword = Observable.combineLatest(input.username, input.password) {(username: $0, password: $1)}
+        let usernameAndPassword = Observable.combineLatest(input.username, input.password) {(username: $0, password: $1)} //尾随闭包 相当于resultSelector的函数的写法
+        
         signedIn = input.loginTaps.withLatestFrom(usernameAndPassword).flatMapLatest {pair in
             return API.signup(pair.username, password: pair.password)
                 .observeOn(MainScheduler.instance)
