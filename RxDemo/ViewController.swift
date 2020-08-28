@@ -16,6 +16,10 @@ class ViewController: UIViewController {
     let musiclist = MusicListViewModel()
     let disposeBag = DisposeBag()
 
+    struct TestError: Error {
+        let test: Int;
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Rxswift"
@@ -165,5 +169,56 @@ class ViewController: UIViewController {
         withLatestFrom4.onNext("2")
         withLatestFrom3.onNext("🆎")
         //打印结果： 🆎2
+        
+        
+        /**
+         * catchError
+         * 从一个错误事件中恢复，将错误事件替换成一个备选序列
+         *
+         *catchError 将会拦截一个error事件，将它替换成其他元素或者一组元素，然后传递给观察者。这样可以使得Observable正常结束，或者根本都不需要结束
+         */
+        let sequenceThatFails = PublishSubject<String>()
+        let recoverySequence = PublishSubject<String>()
+        
+        sequenceThatFails
+            .catchError {
+                print("Error:", $0)
+                return recoverySequence
+        }
+        .subscribe{ print($0) }
+        .disposed(by: disposeBag)
+        sequenceThatFails.onNext("😬")
+        sequenceThatFails.onNext("😨")
+        sequenceThatFails.onNext("😡")
+        sequenceThatFails.onNext("🔴")
+        sequenceThatFails.onError(TestError.init(test: 10))
+        recoverySequence.onNext("😊")
+        
+        /**
+         * catchErrorJustReturn
+         * 会将error事件替换成其他的一个元素，然后结束该序列
+         */
+        let sequenceThatFails2 = PublishSubject<String>()
+        sequenceThatFails2.catchErrorJustReturn("😊")
+            .subscribe{ print($0) }
+        .disposed(by: disposeBag)
+        
+        sequenceThatFails2.onNext("😬")
+        sequenceThatFails2.onNext("😨")
+        sequenceThatFails2.onNext("😡")
+        sequenceThatFails2.onNext("🔴")
+        sequenceThatFails2.onError(TestError.init(test: 20))
+        
+        /**
+         * distinctUntilChanged
+         * 阻止Observable发出相同的元素
+         * 阻止Observable发出相同的元素。如果后一个元素和前一个元素是相同的，那么这个元素将不会被发出来，如果后一个元素和前一个元素不相同，那么这个元素才会被发出
+         *
+         */
+        Observable.of("🐱", "🐷", "🐱", "🐱", "🐱", "🐵", "🐱")
+        .distinctUntilChanged()
+            .subscribe(onNext: { print($0) })
+            .disposed(by: disposeBag)
     }
+    
 }

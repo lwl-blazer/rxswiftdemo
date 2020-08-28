@@ -127,7 +127,8 @@ class GithupSignupViewModel1 {
         let validationService = dependency.validationService
         let wireframe = dependency.wireframe
     
-        validateUsername = input.username.flatMapLatest{ username in
+        validateUsername = input.username.flatMapLatest{ username -> Observable<ValidationResult> in
+            print("validateUsername\(username)")
             //转换
             return validationService.validateUsername(username)
                 .observeOn(MainScheduler.instance)
@@ -135,13 +136,14 @@ class GithupSignupViewModel1 {
         }.share(replay: 1) //share(replay: Int n) 使观察者共享observable,观察者会立即收到最新的元素，即使这些元素是在订阅前产生的 并且缓存最新的n个元素，将这些元素直接发送新的观察者
         
         validatePassword = input.password.map { passwd in
+            print("validatePassword:\(passwd)")
+            //转换
             return validationService.validatePassword(passwd)
         }.share(replay: 1)
     
         validatePasswordRepeated = Observable.combineLatest(input.password, input.repeatedPassword,
                                                             resultSelector: validationService.validateRepeatedPassword) //resultSelector: Function,在生成元素时调用
             .share(replay: 1)
-        
         
         let signingIn = ActivityIndicator()
         self.signingIn = signingIn.asObservable()
