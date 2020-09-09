@@ -9,5 +9,6 @@ target 'RxDemo' do
 
   pod 'RxSwift'
   pod 'RxCocoa'
+  pod 'RxSwiftExt'
   
 end
